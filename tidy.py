@@ -1,8 +1,8 @@
 import os
 import logging
-import configparser
+import yaml
 
-class Organizer():
+class Tidy():
     def __init__(self):
         '''
         Desc:
@@ -14,12 +14,14 @@ class Organizer():
             Na
         '''
         # Variable definitions
-        self.projectName = "folderOrganizer"
+        self.projectName = "tidy"
         self.homeDirectory = os.path.expanduser("~")
         self.organizerConfigPath = self.homeDirectory + "/.config/" + self.projectName
         self.configFile = self.organizerConfigPath + "/config"
         self.exampleConfig = "./example.config"
         self.logFile = self.organizerConfigPath + '/organizer.log'
+
+        self.bypassParameter = '_'
 
         # Create path for config
         if (not os.path.isdir(self.organizerConfigPath)):
@@ -61,62 +63,41 @@ class Organizer():
 
         self.logger.info('Start to read config!')
 
-        config = configparser.ConfigParser()
-        config.read(self.configFile)
+        with open(self.configFile) as config:
+            configStr = config.read()
+            attributes = yaml.safe_load(configStr)
+            self.miscFolders = attributes['miscFolders']
+            self.noteFolders = attributes['noteFolders']
+            config.close()
+
+        # Rearrange folder paths
+        for i, path in enumerate(self.miscFolders):
+            if '~' in path:
+                self.miscFolders[i] = path.replace('~', self.homeDirectory)
+
+        for i, path in enumerate(self.noteFolders):
+            if '~' in path:
+                self.noteFolders[i] = path.replace('~', self.homeDirectory)
+
+        self.logger.info('Misc Folders: '+ ' '.join(self.miscFolders))
+        self.logger.info('Note Folders: '+ ' '.join(self.noteFolders))
 
         self.logger.info('Read config ended!')
 
-    def listFiles(self):
+    def tidyFolders(self):
         '''
         Desc:
-            Na
+            Tidy given Folders
+                - List all files under a certain folder
+                - Create subfolders
+                - Move files
         Input:
-            Na
+            self.miscFolders: Folder paths
+            self.noteFolders: Folder paths
         Output:
             Na
         '''
 
-    def createSubFolders(self):
-        '''
-        Desc:
-            Na
-        Input:
-            Na
-        Output:
-            Na
-        '''
-
-    def moveFiles(self):
-        '''
-        Desc:
-            Na
-        Input:
-            Na
-        Output:
-            Na
-        '''
-
-    def saveLog(self):
-        '''
-        Desc:
-            Na
-        Input:
-            Na
-        Output:
-            Na
-        '''
-
-    def exitOrganizer():
-        '''
-        Desc:
-            Na
-        Input:
-            Na
-        Output:
-            Na
-        '''
-        self.saveLog()
-        exit()
 
     def startProcess(self):
         '''
@@ -128,10 +109,7 @@ class Organizer():
             Na
         '''
         self.readConfig()
-        self.listFIles()
-        self.createSubFolders()
-        self.moveFiles()
-        self.saveLog()
+        self.tidyFolders()
 
-organizerObject = Organizer()
-organizerObject.readConfig()
+tidyObject = Tidy()
+tidyObject.startProcess()
