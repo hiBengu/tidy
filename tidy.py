@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import logging
 import yaml
+import shutil
 
 '''
 Features
@@ -75,6 +76,7 @@ class Tidy():
             attributes = yaml.safe_load(configStr)
             self.misc_folders = attributes['miscFolders']
             self.note_folders = attributes['noteFolders']
+            self.unique_folders = ['txt', 'zip', 'gz', 'pdf'] # todo: read from config
             config.close()
 
         # Rearrange folder paths
@@ -95,6 +97,7 @@ class Tidy():
         '''
         Desc:
             Tidy given Folders
+                - Read previously created folders
                 - List all files under a certain folder
                 - Create subfolders
                 - Move files
@@ -107,8 +110,32 @@ class Tidy():
         self.logger.info('Start to tidy folders!')
 
         for folder in self.misc_folders:
-            result = list(Path(folder).rglob("*"))
-            print(str(result[1]))
+            current_folders = []
+            contents = os.listdir(folder)
+            for i, content in enumerate(contents):
+                if(os.path.isdir(folder+'/'+content)):
+                    current_folders.append(contents.pop(i))
+
+            if 'misc' not in current_folders:
+                current_folders.append('misc')
+                os.makedirs(folder+'/misc/', exist_ok=True)
+
+            for content in contents:
+                content_splits = os.path.splitext(content)
+                extension = content_splits[1]
+                extension = extension.replace('.', '');
+                if extension != '' and extension not in current_folders:
+                    if extension in self.unique_folders:
+                        current_folders.append(extension)
+                        if (not os.path.isdir(folder+'/'+extension+'/')):
+                            os.makedirs(folder+'/'+extension+'/')
+                if extension in self.unique_folders:
+                    shutil.move(folder+"/"+content, folder+'/'+extension+'/')
+                else:
+                    shutil.move(folder+"/"+content, folder+'/misc/')
+
+            self.logger.info('Main folders under the directory: ' + str(folder))
+            self.logger.info(current_folders)
 
         self.logger.info('End tidy folders!')
 
