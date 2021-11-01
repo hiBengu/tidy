@@ -24,9 +24,9 @@ class Tidy():
         # Variable definitions
         self.project_name = "tidy"
         self.home_directory = os.path.expanduser("~")
-        self.organizer_config_path = self.home_directory + "/.config/" + self.project_name
+        self.organizer_config_path = self.home_directory + "/opt/" + self.project_name
         self.config_file = self.organizer_config_path + "/config"
-        self.example_config = "./example.config"
+        self.example_config = "/opt/tidy/example.config"
         self.log_file = self.organizer_config_path + '/organizer.log'
 
         self.bypass_parameter = '_'
@@ -111,15 +111,26 @@ class Tidy():
 
         for folder in self.misc_folders:
             current_folders = []
-            contents = os.listdir(folder)
-            for i, content in enumerate(contents):
-                if(os.path.isdir(folder+'/'+content)):
-                    current_folders.append(contents.pop(i))
+            folder_contents = []
+            contents = []
+            all_contents = os.listdir(folder)
 
+            print(contents)
+            # Seperate file and folders under the directory
+            for content in all_contents:
+                if(os.path.isdir(os.path.join(folder, content))):
+                    current_folders.append(content)
+                else:
+                    contents.append(content)
+
+            print(contents)
+
+            # If there is no misc folder create one
             if 'misc' not in current_folders:
                 current_folders.append('misc')
                 os.makedirs(folder+'/misc/', exist_ok=True)
 
+            # Create folder for extensions and move them accordingly
             for content in contents:
                 content_splits = os.path.splitext(content)
                 extension = content_splits[1]
@@ -127,12 +138,13 @@ class Tidy():
                 if extension != '' and extension not in current_folders:
                     if extension in self.unique_folders:
                         current_folders.append(extension)
-                        if (not os.path.isdir(folder+'/'+extension+'/')):
-                            os.makedirs(folder+'/'+extension+'/')
+                        if (not os.path.isdir(os.path.join(folder, extension))):
+                            os.makedirs(os.path.join(folder, extension))
+
                 if extension in self.unique_folders:
-                    shutil.move(folder+"/"+content, folder+'/'+extension+'/')
-                else:
-                    shutil.move(folder+"/"+content, folder+'/misc/')
+                    shutil.move(os.path.join(folder, content), os.path.join(folder, extension))
+                elif not os.path.isdir(os.path.join(folder, content)):
+                    shutil.move(os.path.join(folder, content), os.path.join(folder, 'misc'))
 
             self.logger.info('Main folders under the directory: ' + str(folder))
             self.logger.info(current_folders)
@@ -151,5 +163,6 @@ class Tidy():
         self.readConfig()
         self.tidyFolders()
 
-tidyObject = Tidy()
-tidyObject.startProcess()
+if __name__ == "__main__":
+    tidyObject = Tidy()
+    tidyObject.startProcess()

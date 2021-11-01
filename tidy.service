@@ -1,0 +1,10 @@
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description=A program to tidy your folders
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/opt/tidy/tidy
