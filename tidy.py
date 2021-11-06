@@ -24,10 +24,10 @@ class Tidy():
         # Variable definitions
         self.project_name = "tidy"
         self.home_directory = os.path.expanduser("~")
-        self.organizer_config_path = self.home_directory + "/opt/" + self.project_name
+        self.organizer_config_path = self.home_directory + "/.config/" + self.project_name
         self.config_file = self.organizer_config_path + "/config"
-        self.example_config = "/opt/tidy/example.config"
-        self.log_file = self.organizer_config_path + '/organizer.log'
+        self.example_config = "usr/bin/example.config"
+        self.log_file = self.organizer_config_path + '/tidy.log'
 
         self.bypass_parameter = '_'
 
@@ -44,12 +44,14 @@ class Tidy():
         self.logger.basicConfig(filename=self.log_file, encoding='utf-8', level=logging.DEBUG, filemode = 'w')
 
         self.logger.info('Init of organizer is started.')
+        self.logger.info(self.home_directory)
 
 
         if (not os.path.exists(self.config_file)):
             example_config = open(self.example_config, 'r')
             self.initial_config_file = example_config.read()
             example_config.close()
+            self.logger.info(self.config_file)
             config_file = open(self.config_file, 'w+')
             config_file.write(self.initial_config_file)
             config_file.close()
